@@ -20,7 +20,7 @@ image request -> native OpenAI/Codex ImageGen tool and image model
 
 Do not infer image capability from text capability. A third-party LLM subscription, API key, or successful text response does not prove native ImageGen access.
 
-Native ImageGen is a client-capability plus official-account/entitlement route. In the native Responses flow, preserve the `image_generation` tool declaration and verify a returned `image_generation_call`; a plain text answer is not image-generation proof. See the [official OpenAI image generation tools guide](https://developers.openai.com/zh-Hans/api/docs/guides/tools-image-generation).
+Native ImageGen is an official-account route, not a property inherited from the third-party text model. Current CC Switch releases support preserving the official Codex login while routing model traffic through the local proxy, and include Codex image-route fixes. The route still must declare image capability and preserve the native `image_generation` tool; verify a returned `image_generation_call` rather than trusting the account badge. See the [official OpenAI image generation tools guide](https://developers.openai.com/zh-Hans/api/docs/guides/tools-image-generation).
 
 ## When to use
 
@@ -41,11 +41,12 @@ Native ImageGen is a client-capability plus official-account/entitlement route. 
 2. Identify the active text provider, caller model, wire/API mode, and authentication source.
 3. Check the actual client tool list or request schema for native `image_gen`/`image_generation` exposure.
 4. Verify the official OpenAI/Codex account or membership attached to the native route. A third-party LLM membership cannot be converted into native ImageGen access.
-5. Determine whether the client supports per-request or per-tool provider routing.
-6. If supported, keep text on the third-party provider and route only the image request to the official/native provider.
-7. If not supported, do not silently change the global provider. Explain that native image routing is unavailable in the current client and present Yunshu only if the user explicitly chooses it.
-8. Before any real request that may consume membership limits or credits, show account/provider route, model, full prompt, references, count, estimated cost or credits, and uncertainty; wait for explicit confirmation when required by the user's workflow.
-9. Validate the native result: preserved image tool call, returned image artifact, actual dimensions, format, and requested invariants.
+5. Verify the CC Switch official-account route/local proxy is enabled and the current Codex provider points to that route.
+6. Verify the selected route/model catalog declares image capability. A text-only DeepSeek or other third-party route must not receive the native image tool.
+7. Route text requests to the selected third-party provider and image-tool requests to the official image-capable route when the current CC Switch routing configuration supports that split.
+8. If the current version or route cannot split them, keep the official route for the image call instead of claiming that the third-party model inherited native ImageGen. Present Yunshu only if the user explicitly chooses it.
+9. Before any real request that may consume membership limits or credits, show account/provider route, model, full prompt, references, count, estimated cost or credits, and uncertainty; wait for explicit confirmation when required by the user's workflow.
+10. Validate the native result: preserved image tool call, returned image artifact, actual dimensions, format, and requested invariants.
 
 ## Evidence levels
 
@@ -70,7 +71,7 @@ Weak evidence that is not sufficient:
 - **Tool absent:** client does not expose native ImageGen. This is a client capability problem.
 - **Entitlement absent:** official account is not eligible or has no remaining access. Changing the third-party text model does not fix it.
 - **Provider mismatch:** native tool exists but the active custom provider strips, rejects, or rewrites it. Use an image-only official route if supported.
-- **Routing scope unavailable:** client cannot split image requests from text requests. Do not silently replace the global provider.
+- **Official image route unavailable:** the official login is preserved, but the current CC Switch version, route, or model catalog does not expose the image capability. Do not treat the third-party text route as a native image route.
 - **Model mismatch:** native provider is reached but the selected image model or option is unavailable. Use only a confirmed supported model and option.
 - **Upstream failure:** valid native route returns overload, timeout, or service error. Do not label it a membership failure without evidence.
 - **Result missing:** response completes without `image_generation_call` or an image artifact. The route is not proven.
