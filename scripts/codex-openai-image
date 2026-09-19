@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Route one Codex invocation through the OpenAI provider so the image tool is
+# available when the normal provider does not expose it.
+#
+# The wrapper handles two independent concerns:
+#
+# 1. Provider routing. A user or project config may point Codex at a provider that
+#    does not expose the image tool. This process injects provider/model overrides
+#    without changing the user's config file.
+#
+# 2. Artifact handoff. `codex exec --json` may not emit an image-specific path
+#    event, and the model response may omit the absolute path. The wrapper snapshots
+#    the output directory and appends one path event for a newly created PNG.
+#
+# Environment variables:
+#   CODEX_IMAGE_MODEL   OpenAI-side model (default gpt-5.6-luna)
+#   CODEX_IMAGE_EFFORT  reasoning effort (default low)
+#   CODEX_BIN           codex executable path
+#   CODEX_IMAGE_ROOT    image directory (default $CODEX_HOME/generated_images)
+#
+# The script contains no credentials. Login state remains in $CODEX_HOME/auth.json.
+
+set -u
+
+codex_bin="${CODEX_BIN:-codex}"
+codex_home="${CODEX_HOME:-$HOME/.codex}"
+image_root="${CODEX_IMAGE_ROOT:-$codex_home/generated_images}"
+model="${CODEX_IMAGE_MODEL:-gpt-5.6-luna}"
+effort="${CODEX_IMAGE_EFFORT:-low}"
+
+before_list="$(mktemp)"
+after_list="$(mktemp)"
+cleanup() { rm -f "$before_list" "$after_list"; }
+trap cleanup EXIT INT TERM
+
+snapshot() { find "$image_root" -type f -name '*.png' 2>/dev/null | sort; }
+snapshot > "$before_list"
+
+"$codex_bin" -c model_provider="openai" -c model="$model" -c model_reasoning_effort="$effort" "$@"
+status=$?
+
+snapshot > "$after_list"
+
+newest="$(
+  comm -13 "$before_list" "$after_list" \
+    | while IFS= read -r file; do
+        [ -f "$file" ] || continue
+        printf '%s\t%s\n' "$(stat -f '%m' "$file" 2>/dev/null || stat -c '%Y' "$file" 2>/dev/null || echo 0)" "$file"
+      done \
+    | sort -rn \
+    | head -1 \
+    | cut -f2-
+)"
+
+if [ -n "${newest:-}" ]; then
+  printf '{"type":"item.completed","item":{"type":"image_generation_call","saved_path":"%s"}}\n' "$newest"
+fi
+
+exit "$status"

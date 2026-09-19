@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">Codex Image Routing architecture</title>
+  <desc id="desc">A caller invokes a Bash wrapper. The wrapper applies per-process Codex settings, snapshots the image directory, starts Codex, and emits a JSONL path event after a new PNG appears. The original PNG can be checked by a provenance script.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <style>
+      .title { font: 700 24px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .label { font: 600 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .small { font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+      .box { stroke: #334155; stroke-width: 2; rx: 10; }
+      .external { fill: #f8fafc; }
+      .wrapper { fill: #e0f2fe; }
+      .artifact { fill: #ecfdf5; }
+      .verify { fill: #fff7ed; }
+      .line { stroke: #334155; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 8 7; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="520" fill="#ffffff"/>
+  <text x="60" y="58" class="title">Codex Image Routing</text>
+  <text x="60" y="87" class="small">Per-process provider override plus filesystem-based artifact handoff</text>
+
+  <rect x="60" y="170" width="190" height="100" class="box external"/>
+  <text x="155" y="210" text-anchor="middle" class="label">Caller</text>
+  <text x="155" y="238" text-anchor="middle" class="small">prompt + CLI args</text>
+
+  <rect x="310" y="135" width="250" height="170" class="box wrapper"/>
+  <text x="435" y="177" text-anchor="middle" class="label">Bash wrapper</text>
+  <text x="435" y="207" text-anchor="middle" class="small">apply overrides</text>
+  <text x="435" y="231" text-anchor="middle" class="small">snapshot before/after</text>
+  <text x="435" y="255" text-anchor="middle" class="small">透传输出 + path event</text>
+
+  <rect x="620" y="135" width="220" height="170" class="box external"/>
+  <text x="730" y="177" text-anchor="middle" class="label">Codex CLI</text>
+  <text x="730" y="207" text-anchor="middle" class="small">provider + model</text>
+  <text x="730" y="231" text-anchor="middle" class="small">tool invocation</text>
+  <text x="730" y="255" text-anchor="middle" class="small">JSONL stream</text>
+
+  <rect x="900" y="135" width="240" height="170" class="box external"/>
+  <text x="1020" y="177" text-anchor="middle" class="label">OpenAI Provider</text>
+  <text x="1020" y="207" text-anchor="middle" class="small">account + service policy</text>
+  <text x="1020" y="231" text-anchor="middle" class="small">image capability</text>
+  <text x="1020" y="255" text-anchor="middle" class="small">generated PNG</text>
+
+  <rect x="620" y="375" width="220" height="90" class="box artifact"/>
+  <text x="730" y="410" text-anchor="middle" class="label">Image directory</text>
+  <text x="730" y="438" text-anchor="middle" class="small">CODEX_IMAGE_ROOT</text>
+
+  <rect x="900" y="375" width="240" height="90" class="box verify"/>
+  <text x="1020" y="410" text-anchor="middle" class="label">Provenance checker</text>
+  <text x="1020" y="438" text-anchor="middle" class="small">original PNG only</text>
+
+  <path d="M250 220 H310" class="line"/>
+  <path d="M560 220 H620" class="line"/>
+  <path d="M840 220 H900" class="line"/>
+  <path d="M1020 305 V375" class="line"/>
+  <path d="M840 420 H900" class="line dashed"/>
+
+  <text x="275" y="205" text-anchor="middle" class="small">invoke</text>
+  <text x="590" y="205" text-anchor="middle" class="small">exec</text>
+  <text x="870" y="205" text-anchor="middle" class="small">request</text>
+  <text x="855" y="406" text-anchor="middle" class="small">verify</text>
+
+  <text x="60" y="490" class="small">Solid arrows: runtime request path. Dashed arrow: optional post-run verification.</text>
+</svg>
