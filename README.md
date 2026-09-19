@@ -1,12 +1,16 @@
 # Codex Image Routing
 
-当你在 Codex 里通过 CC Switch 接入 DeepSeek 等第三方模型时，文本对话可能正常，但原生 ImageGen 工具可能因为 Provider 没有暴露图片能力而失败，常见表现是 `404` 或 unsupported-tool。
+这个项目专门解决一个问题：在 Codex 通过 CC Switch 接入 DeepSeek 等第三方模型后，把图片生成请求路由到原生 OpenAI/Codex ImageGen。
 
-如果你有具备相应权限的 OpenAI/Codex 会员账号，可以把第三方模型用于日常文本，把官方账号的额度尽量保留给原生 ImageGen。这样做的前提是客户端能够把文本请求和图片请求分开路由；第三方模型的会员或 API Key 本身不会自动获得原生 ImageGen 权限。
+结论只有三条：
 
-网页版 ChatGPT 的图片生成和 Codex 里的原生 ImageGen 是两条不同的客户端与请求链路。网页版能生成图片，不等于 CC Switch 接入的第三方 Codex Provider 已经支持原生 ImageGen；反过来也不能仅凭网页状态判断 Codex 路由是否正常。
+1. 第三方模型负责文本对话，不提供原生 ImageGen。
+2. 原生 ImageGen 必须使用具备相应权限的官方 OpenAI/Codex 会员账号和登录态；第三方模型的会员、API Key 或模型列表不能替代这个权限。
+3. 有 GPT Plus/Codex 会员时，把日常文本交给第三方模型，把官方会员额度保留给生图，是本项目的核心使用场景。
 
-这个仓库记录路由判断、故障边界和结果核验，并保留一个现有的进程级路由实现：它可以把一次图片调用切到官方 Provider，但不把“整次调用切换”误称为“同一会话内的按请求分流”。
+网页版 ChatGPT 生图和 Codex 原生 ImageGen 是两条完全不同的请求链路。网页版能生图，只能证明网页版链路可用，不能证明 CC Switch 接入的第三方 Codex Provider 支持原生 ImageGen。
+
+如果客户端支持按请求分流，正确路由就是：文本继续走第三方模型，图片单独走官方 ImageGen。如果客户端不支持按请求分流，就只能把整次图片调用切到官方 Provider，不能把整次切换说成同一会话内的文本/图片分流。
 
 包装器负责两件事：切换当前进程的 Provider，以及交接新生成的文件路径。
 
@@ -14,10 +18,10 @@
 
 ## 适用场景
 
-- 使用 CC Switch 让 Codex 接入 DeepSeek 等第三方模型，同时需要排查原生 ImageGen 的 Provider 路由。
-- 具备官方 OpenAI/Codex 会员或登录态，希望把第三方模型用于文本、把官方额度保留给图片生成。
-- 需要区分“第三方文本请求成功”“原生图片工具已暴露”“账号具备图片权限”和“图片结果真实返回”这几个不同层次。
-- 日常 Codex 会话使用自定义 Provider，图片生成需要临时走 OpenAI Provider。
+- 使用 CC Switch 让 Codex 接入 DeepSeek 等第三方模型，同时把原生 ImageGen 路由到官方 Provider。
+- 具备 GPT Plus/Codex 会员，准备把第三方模型用于文本，把官方额度保留给图片生成。
+- 需要确认第三方文本请求、原生图片工具、官方会员权限和真实图片结果分别是否成立。
+- 日常 Codex 会话使用自定义 Provider，图片调用切换到官方 Provider。
 - 自动化程序调用 `codex exec --json`，需要拿到新生成文件的路径。
 - 需要对原始 PNG 做来源信息检查。
 
