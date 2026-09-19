@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Image Routing"
+  short_description: "Route third-party text to native ImageGen"
+  default_prompt: "Use $codex-image-routing to diagnose third-party Codex text routing to native ImageGen."
